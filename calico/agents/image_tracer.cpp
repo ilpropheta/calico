@@ -9,7 +9,7 @@ calico::agents::image_tracer::image_tracer(so_5::agent_context_t ctx, so_5::mbox
 
 void calico::agents::image_tracer::so_define_agent()
 {
-	so_subscribe(m_channel).event([](cv::Mat image) {
+	so_subscribe(m_channel).event([](const cv::Mat& image) {
 		std::osyncstream(std::cout) << "Got image: " << image.size() << "\n";
 	});
 }

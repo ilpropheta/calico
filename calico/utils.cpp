@@ -20,7 +20,7 @@ public:
 		stopped.notify_one();
 	}
 
-	stop_token get_token()
+	stop_token get_token() const
 	{
 		return source.get_token();
 	}
@@ -32,7 +32,7 @@ private:
 
 static ctrlc_handler ctrlc;
 
-void ctrlc_signal_handler(int signum)
+static void ctrlc_signal_handler(int signum)
 {
 	if (signum == SIGINT || signum == SIGTERM)
 	{
