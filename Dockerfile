@@ -20,6 +20,7 @@ RUN echo "marco:marco" | chpasswd
 # required dependencies
 RUN vcpkg install sobjectizer
 RUN vcpkg install grpc
+RUN vcpkg install gtest
 
 # launch the ssh service just before starting
 ENTRYPOINT service ssh start && bash
