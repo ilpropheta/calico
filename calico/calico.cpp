@@ -1,5 +1,5 @@
 ﻿#include "utils.h"
-#include "producers/image_producer.h"
+#include "producers/image_producer_callback.h"
 #include "agents/image_viewer.h"
 #include "agents/image_tracer.h"
 
@@ -11,7 +11,7 @@ int main()
 	const auto main_channel = env.environment().create_mbox("main");
 
 	env.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(env.environment()).binder(), [&](so_5::coop_t& c) {
-		c.make_agent<calico::producers::image_producer>(main_channel, ctrl_c);
+		c.make_agent<calico::producers::image_producer_callback>(main_channel, ctrl_c);
 		c.make_agent<calico::agents::image_viewer>(main_channel);
 		c.make_agent<calico::agents::image_tracer>(main_channel);
 	});
