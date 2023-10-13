@@ -9,11 +9,12 @@ namespace calico::producers
 	class image_producer_callback final : public so_5::agent_t
 	{
 	public:
-		image_producer_callback(so_5::agent_context_t ctx, so_5::mbox_t channel, std::stop_token st);
+		image_producer_callback(so_5::agent_context_t ctx, so_5::mbox_t channel);
 		void so_evt_start() override;
+		void so_evt_finish() override;
 	private:
 		so_5::mbox_t m_channel;
 		devices::observable_videocapture m_device;
-		std::stop_token m_stop;
+		std::stop_source m_stop_source;
 	};
 }
