@@ -73,6 +73,25 @@
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
+        {
+            "name": "linux-debug-conan",
+            "displayName": "Linux Debug Conan",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PROJECT_TOP_LEVEL_INCLUDES": "conan_provider.cmake"
+            }
+        },
+        {
+            "name": "linux-release-conan",
+            "displayName": "Linux Release  Conan",
+            "inherits": "linux-debug-conan",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
 		{
             "name": "docker-debug",
             "displayName": "Docker Debug",
