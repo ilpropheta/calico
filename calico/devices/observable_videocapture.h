@@ -10,22 +10,25 @@ namespace calico::devices
 	public:
 		observable_videocapture();
 
-		void on_next_image(std::stop_token st, auto on_next)
+		void start(auto on_next)
 		{
 			if (!m_capture.isOpened())
 			{
 				throw std::runtime_error("Can't connect to the webcam");
 			}
 
-			m_worker = std::jthread{ [this, st, action = std::move(on_next)] {
+			m_worker = std::jthread{ [this, f = std::move(on_next)](std::stop_token st) {
 				cv::Mat image;
 				while (!st.stop_requested())
 				{
 					m_capture >> image;
-					action(std::move(image));
+					f(std::move(image));
 				}
 			} };
 		}
+
+		void stop();
+
 	private:
 		cv::VideoCapture m_capture;
 		std::jthread m_worker;
