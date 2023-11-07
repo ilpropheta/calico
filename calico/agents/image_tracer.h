@@ -4,7 +4,7 @@
 namespace calico::agents
 {
 	// prints image dimensions to the standard output
-	class image_tracer : public so_5::agent_t
+	class image_tracer final : public so_5::agent_t
 	{
 	public:
 		image_tracer(so_5::agent_context_t ctx, so_5::mbox_t channel);

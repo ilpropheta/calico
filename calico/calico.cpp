@@ -1,7 +1,7 @@
 ﻿#include "utils.h"
 #include "agents/image_viewer.h"
 #include "agents/image_tracer.h"
-#include "signals.h"
+#include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
 
 int main()
@@ -16,17 +16,8 @@ int main()
 		c.make_agent<calico::producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<calico::agents::image_viewer>(main_channel);
 		c.make_agent<calico::agents::image_tracer>(main_channel);
+		c.make_agent<calico::agents::remote_control>(commands_channel);
 	});
-
-	std::this_thread::sleep_for(std::chrono::seconds(1));
-	so_5::send<calico::start_acquisition_command>(commands_channel);
-
-	std::cout << "Acquisition START command sent!\n";
-
-	std::this_thread::sleep_for(std::chrono::seconds(5));
-	so_5::send<calico::stop_acquisition_command>(commands_channel);
-
-	std::cout << "Acquisition STOP command sent!\n";
 
 	calico::utils::wait_for_stop(ctrl_c);
 }
