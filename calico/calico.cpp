@@ -1,7 +1,7 @@
 ﻿#include "utils.h"
 #include "agents/image_viewer_live.h"
-#include "agents/image_tracer.h"
 #include "agents/remote_control.h"
+#include "agents/stream_heartbeat.h"
 #include "producers/image_producer_recursive.h"
 
 int main()
@@ -15,7 +15,7 @@ int main()
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<calico::producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<calico::agents::image_viewer_live>(main_channel);
-		c.make_agent<calico::agents::image_tracer>(main_channel);
+		c.make_agent<calico::agents::stream_heartbeat>(main_channel);
 		c.make_agent<calico::agents::remote_control>(commands_channel);
 	});
 
