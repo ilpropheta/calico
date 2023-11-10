@@ -18,4 +18,17 @@ namespace calico::agents
 		std::chrono::time_point<std::chrono::steady_clock> m_startTime;
 		so_5::timer_id_t m_timer;
 	};
+
+	// logs the stream's uptime (aka: the duration it remains active) by reacting to 'stream_up' and 'stream_down' signals
+	class stream_heartbeat_with_detector : public so_5::agent_t
+	{
+		struct log_heartbeat final : so_5::signal_t {};
+	public:
+		stream_heartbeat_with_detector(so_5::agent_context_t ctx, so_5::mbox_t detector_channel);
+		void so_define_agent() override;
+	private:
+		so_5::mbox_t m_channel;
+		std::chrono::time_point<std::chrono::steady_clock> m_startTime;
+		so_5::timer_id_t m_timer;
+	};
 }
