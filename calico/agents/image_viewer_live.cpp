@@ -11,8 +11,8 @@ calico::agents::image_viewer_live::image_viewer_live(so_5::agent_context_t ctx, 
 void calico::agents::image_viewer_live::so_define_agent()
 {
 	st_handling_images
-		.event(m_channel, [this](so_5::mhood_t<cv::Mat> image) {
-			imshow(m_title, *image);
+		.event(m_channel, [this](const cv::Mat& image) {
+			imshow(m_title, image);
 			cv::waitKey(25);
 			st_handling_images.time_limit(500ms, st_stream_down);
 		});

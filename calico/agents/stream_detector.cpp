@@ -14,7 +14,7 @@ void calico::agents::stream_detector::so_define_agent()
 		.on_enter([this] {
 			so_5::send<stream_up>(m_out_channel);
 		})
-		.event(m_channel, [this](so_5::mhood_t<cv::Mat>) {
+		.event(m_channel, [this](const cv::Mat&) {
 			st_handling_images.time_limit(500ms, st_stream_down);
 		}).on_exit([this] {
 			so_5::send<stream_down>(m_out_channel);

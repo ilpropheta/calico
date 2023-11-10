@@ -15,7 +15,7 @@ namespace calico::agents
 		void so_define_agent() override;
 	private:
 		so_5::mbox_t m_channel;
-		std::chrono::time_point<std::chrono::steady_clock> m_startTime;
+		std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 		so_5::timer_id_t m_timer;
 	};
 
@@ -28,7 +28,7 @@ namespace calico::agents
 		void so_define_agent() override;
 	private:
 		so_5::mbox_t m_channel;
-		std::chrono::time_point<std::chrono::steady_clock> m_startTime;
+		std::chrono::time_point<std::chrono::steady_clock> m_start_time;
 		so_5::timer_id_t m_timer;
 	};
 }
