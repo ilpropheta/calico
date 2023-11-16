@@ -5,7 +5,7 @@ namespace calico::agents
 {
 	// logs the stream's uptime (aka: the duration it remains active) every 5 seconds until frames are no longer received
 	// for a duration of 500 milliseconds
-	class stream_heartbeat : public so_5::agent_t
+	class stream_heartbeat final : public so_5::agent_t
 	{
 		struct log_heartbeat final : so_5::signal_t {};
 		so_5::state_t st_handling_images{ this };
@@ -20,7 +20,7 @@ namespace calico::agents
 	};
 
 	// logs the stream's uptime (aka: the duration it remains active) by reacting to 'stream_up' and 'stream_down' signals
-	class stream_heartbeat_with_detector : public so_5::agent_t
+	class stream_heartbeat_with_detector final : public so_5::agent_t
 	{
 		struct log_heartbeat final : so_5::signal_t {};
 	public:

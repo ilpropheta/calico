@@ -5,7 +5,7 @@ namespace calico::agents
 {
 	// detects stream activities by sending a 'stream_up' signal upon receiving the first image and
 	// a 'stream_down' signal if no new frames arrive within 500 milliseconds
-	class stream_detector : public so_5::agent_t
+	class stream_detector final : public so_5::agent_t
 	{
 		so_5::state_t st_handling_images{ this };
 		so_5::state_t st_stream_down{ this };
