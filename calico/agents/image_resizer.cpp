@@ -6,6 +6,11 @@ calico::agents::image_resizer::image_resizer(so_5::agent_context_t ctx, so_5::mb
 {
 }
 
+calico::agents::image_resizer::image_resizer(so_5::agent_context_t ctx, so_5::mbox_t input, double factor)
+	: image_resizer(ctx, std::move(input), ctx.environment().create_mbox(), factor)
+{
+}
+
 void calico::agents::image_resizer::so_define_agent()
 {
 	so_subscribe(m_input).event([this](const cv::Mat& image) {
@@ -13,4 +18,9 @@ void calico::agents::image_resizer::so_define_agent()
 		resize(image, resized, {}, m_factor, m_factor);
 		so_5::send<cv::Mat>(m_output, std::move(resized));
 	});
+}
+
+so_5::mbox_t calico::agents::image_resizer::output() const
+{
+	return m_output;
 }

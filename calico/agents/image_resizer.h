@@ -8,7 +8,9 @@ namespace calico::agents
 	{
 	public:
 		image_resizer(so_5::agent_context_t ctx, so_5::mbox_t input, so_5::mbox_t output, double factor);
+		image_resizer(so_5::agent_context_t ctx, so_5::mbox_t input, double factor);
 		void so_define_agent() override;
+		so_5::mbox_t output() const;
 	private:
 		so_5::mbox_t m_input;
 		so_5::mbox_t m_output;
