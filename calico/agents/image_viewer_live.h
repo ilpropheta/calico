@@ -14,7 +14,8 @@ namespace calico::agents
 
 		void so_define_agent() override;
 	private:
+		static inline int global_id = 0;
 		so_5::mbox_t m_channel;
-		std::string m_title = "image viewer live";
+		std::string m_title = std::format("image viewer live {}", global_id++);
 	};
 }
