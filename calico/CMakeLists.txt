@@ -10,7 +10,7 @@ else()
   set(SOBJECTIZER_LIB sobjectizer::StaticLib)
 endif()
 
-set(OPENCV_LIBS opencv_core opencv_highgui opencv_imgcodecs opencv_imgproc)
+set(OPENCV_LIBS opencv_core opencv_highgui opencv_imgcodecs opencv_imgproc opencv_objdetect)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ${TargetName} PROPERTY CXX_STANDARD 20)
@@ -18,5 +18,8 @@ endif()
 
 find_package(sobjectizer CONFIG REQUIRED)
 find_package(OpenCV CONFIG REQUIRED)
+
+file(GLOB DATA_TO_COPY "data/*.*")
+file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico)
 
 target_link_libraries(${TargetName} PRIVATE ${SOBJECTIZER_LIB} ${OPENCV_LIBS})
