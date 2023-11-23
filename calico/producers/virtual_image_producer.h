@@ -5,6 +5,7 @@
 namespace calico::producers
 {
 	// sends images read from a folder to the specified message box, simulating approximately 50fps
+	// reacts to 'start_acquisition_command' and 'stop_acquisition_command' to control the acquisition
 	class virtual_image_producer final : public so_5::agent_t
 	{
 		struct grab_image final : so_5::signal_t {};
