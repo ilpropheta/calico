@@ -1,5 +1,6 @@
 #include "image_producer.h"
 #include "../signals.h"
+#include "../errors.h"
 #include <opencv2/videoio.hpp>
 
 calico::producers::image_producer::image_producer_broker::image_producer_broker(so_5::agent_context_t c, image_producer* parent, so_5::mbox_t commands)
@@ -32,8 +33,8 @@ void calico::producers::image_producer::so_evt_start()
 		c.make_agent<image_producer_broker>(this, m_commands);
 	});
 
-	cv::VideoCapture cap(0, cv::CAP_DSHOW);
-	if (!cap.isOpened())
+	cv::VideoCapture capture(0, cv::CAP_DSHOW);
+	if (!capture.isOpened())
 	{
 		throw std::runtime_error("Can't connect to the webcam");
 	}
@@ -41,11 +42,17 @@ void calico::producers::image_producer::so_evt_start()
 	while (m_state != acquisition_state::st_cancelled)
 	{
 		m_state.wait(acquisition_state::st_stopped);
-		cv::Mat image;
 		while (m_state == acquisition_state::st_started)
 		{
-			cap >> image;
-			so_5::send<cv::Mat>(m_channel, image);
+			cv::Mat image;
+			if (capture.read(image))
+			{
+				so_5::send<cv::Mat>(m_channel, std::move(image));
+			}
+			else
+			{
+				so_5::send<device_error>(m_channel, "read error", device_error_type::read_error);
+			}
 		}
 	}
 }
