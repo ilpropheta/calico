@@ -13,6 +13,7 @@ int main()
 	const auto main_channel = sobjectizer.environment().create_mbox("main");
 	auto commands_channel = sobjectizer.environment().create_mbox("commands");
 	auto save_buffer = create_mchain(sobjectizer.environment());
+	const auto chain_guard = auto_close_retain_content(save_buffer);
 
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<calico::producers::image_producer_recursive>(main_channel, commands_channel);
@@ -28,5 +29,4 @@ int main()
 	});
 
 	calico::utils::wait_for_stop(ctrl_c);
-	close_retain_content(so_5::terminate_if_throws, save_buffer);
 }
