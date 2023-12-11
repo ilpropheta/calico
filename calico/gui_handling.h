@@ -19,8 +19,14 @@ namespace calico
 		{
 			std::string window;
 		};
+
+		// represents the result of cv::waitKey
+		struct waitkey_message
+		{
+			int pressed;
+		};
 	}
 
 	// receives and handles gui_messages from 'message_queue', terminating when the stop_token is triggered
-	void do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queue);
+	void do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queue, so_5::mbox_t waitkey_out);
 }

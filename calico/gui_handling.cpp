@@ -3,7 +3,7 @@
 
 using namespace std::chrono_literals;
 
-void calico::do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queue)
+void calico::do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queue, so_5::mbox_t waitkey_out)
 {
 	while (!st.stop_requested())
 	{
@@ -16,6 +16,8 @@ void calico::do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queu
 			}
 		);
 
-		cv::waitKey(1);
+		const auto key = cv::waitKey(1);
+		so_5::send<gui_messages::waitkey_message>(waitkey_out, key);
+
 	}
 }
