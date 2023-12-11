@@ -1,6 +1,7 @@
 ﻿#include "utils.h"
 #include "gui_handling.h"
 #include "agents/image_viewer.h"
+#include "agents/image_viewer_live.h"
 #include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
 
@@ -16,6 +17,7 @@ int main()
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<calico::producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<calico::agents::remote_control>(commands_channel);
+		c.make_agent<calico::agents::maint_gui::image_viewer_live>(main_channel, message_queue);
 		c.make_agent<calico::agents::maint_gui::image_viewer>(main_channel, message_queue);
 	});
 
