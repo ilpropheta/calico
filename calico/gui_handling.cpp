@@ -16,8 +16,9 @@ void calico::do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queu
 			}
 		);
 
-		const auto key = cv::waitKey(1);
-		so_5::send<gui_messages::waitkey_message>(waitkey_out, key);
-
+		if (const auto key = cv::waitKey(1); key != -1)
+		{
+			so_5::send<gui_messages::waitkey_message>(waitkey_out, key);
+		}
 	}
 }
