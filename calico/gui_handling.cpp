@@ -10,6 +10,9 @@ void calico::do_gui_message_loop(std::stop_token st, so_5::mchain_t message_queu
 		receive(from(message_queue).handle_n(1).empty_timeout(100ms),
 			[](const gui_messages::imshow_message& mex) {
 				imshow(mex.window, mex.image);
+			},
+			[](const gui_messages::close_window_message& mex) {
+				cv::destroyWindow(mex.window);
 			}
 		);
 

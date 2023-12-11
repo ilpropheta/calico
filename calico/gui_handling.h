@@ -13,6 +13,12 @@ namespace calico
 			std::string window;
 			cv::Mat image;
 		};
+
+		// represents a cv::destroyWindow request
+		struct close_window_message
+		{
+			std::string window;
+		};
 	}
 
 	// receives and handles gui_messages from 'message_queue', terminating when the stop_token is triggered
