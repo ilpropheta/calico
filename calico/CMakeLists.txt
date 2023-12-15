@@ -22,4 +22,13 @@ find_package(OpenCV CONFIG REQUIRED)
 file(GLOB DATA_TO_COPY "data/*.*")
 file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico)
 
+if(WIN32)
+  set(cv_cap_api "cv::CAP_DSHOW")
+elseif(LINUX)
+  set(cv_cap_api "cv::CAP_V4L")
+else()
+  set(cv_cap_api "cv::CAP_ANY")
+endif()
+
+target_compile_definitions(${TargetName} PRIVATE CAP_API=${cv_cap_api})
 target_link_libraries(${TargetName} PRIVATE ${SOBJECTIZER_LIB} ${OPENCV_LIBS})

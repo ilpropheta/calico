@@ -1,9 +1,10 @@
 #include "image_producer_recursive.h"
 #include "../signals.h"
 #include "../errors.h"
+#include "../constants.h"
 
 calico::producers::image_producer_recursive::image_producer_recursive(so_5::agent_context_t ctx, so_5::mbox_t channel, so_5::mbox_t commands)
-	: agent_t(std::move(ctx)), m_channel(std::move(channel)), m_commands(std::move(commands)), m_capture(0, cv::CAP_DSHOW)
+	: agent_t(std::move(ctx)), m_channel(std::move(channel)), m_commands(std::move(commands)), m_capture(0, calico::constants::cv_cap_api)
 {
 }
 
