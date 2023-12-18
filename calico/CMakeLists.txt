@@ -22,7 +22,6 @@ find_package(OpenCV CONFIG REQUIRED)
 file(GLOB DATA_TO_COPY "data/*.*")
 file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico)
 
-<<<<<<< HEAD
 if(WIN32)
   set(cv_cap_api "cv::CAP_DSHOW")
 elseif(LINUX)
@@ -32,7 +31,4 @@ else()
 endif()
 
 target_compile_definitions(${TargetName} PRIVATE CAP_API=${cv_cap_api})
-target_link_libraries(${TargetName} PRIVATE ${SOBJECTIZER_LIB} ${OPENCV_LIBS})
-=======
 target_link_libraries(${TargetName} PUBLIC ${SOBJECTIZER_LIB} ${OPENCV_LIBS})
->>>>>>> 80e2975 (project splitted in core, tests, executable)

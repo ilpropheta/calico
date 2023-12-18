@@ -6,6 +6,19 @@
 
 using namespace std::chrono_literals;
 
+TEST(virtual_image_producer_tests, should_not_produce_images_when_no_commands_are_sent)
+{
+	const so_5::wrapped_env_t sobjectizer;
+
+	const auto fake_input = create_mchain(sobjectizer.environment());
+
+	sobjectizer.environment().introduce_coop([&](so_5::coop_t& c) {
+		c.make_agent<calico::producers::virtual_image_producer>(fake_input->as_mbox(), sobjectizer.environment().create_mbox(), R"(test_data\replay)");
+	});
+
+	EXPECT_EQ(receive(from(fake_input).handle_all().empty_timeout(10ms)).extracted(), 0);
+}
+
 TEST(virtual_image_producer_tests, should_send_images_from_folder_after_receiving_start_acquisition_command)
 {
 	const so_5::wrapped_env_t sobjectizer;
