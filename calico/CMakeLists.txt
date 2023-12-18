@@ -1,8 +1,8 @@
 ﻿set(CMAKE_CXX_STANDARD 20)
-set(TargetName calico)
+set(TargetName calico_core)
 
 FILE(GLOB CppSources *.cpp *.cc */*.cpp)
-add_executable (${TargetName} ${CppSources})
+add_library (${TargetName} STATIC ${CppSources})
 
 if(WIN32)
   set(SOBJECTIZER_LIB sobjectizer::SharedLib)
@@ -22,6 +22,7 @@ find_package(OpenCV CONFIG REQUIRED)
 file(GLOB DATA_TO_COPY "data/*.*")
 file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico)
 
+<<<<<<< HEAD
 if(WIN32)
   set(cv_cap_api "cv::CAP_DSHOW")
 elseif(LINUX)
@@ -32,3 +33,6 @@ endif()
 
 target_compile_definitions(${TargetName} PRIVATE CAP_API=${cv_cap_api})
 target_link_libraries(${TargetName} PRIVATE ${SOBJECTIZER_LIB} ${OPENCV_LIBS})
+=======
+target_link_libraries(${TargetName} PUBLIC ${SOBJECTIZER_LIB} ${OPENCV_LIBS})
+>>>>>>> 80e2975 (project splitted in core, tests, executable)
