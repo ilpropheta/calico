@@ -4,7 +4,7 @@
 #include "../constants.h"
 
 calico::producers::image_producer_recursive::image_producer_recursive(so_5::agent_context_t ctx, so_5::mbox_t channel, so_5::mbox_t commands)
-	: agent_t(std::move(ctx)), m_channel(std::move(channel)), m_commands(std::move(commands)), m_capture(0, calico::constants::cv_cap_api)
+	: agent_t(std::move(ctx)), m_channel(std::move(channel)), m_commands(std::move(commands)), m_capture(0, constants::cv_system_detected_video_capture_api)
 {
 }
 
