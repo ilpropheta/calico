@@ -1,7 +1,8 @@
 #include "observable_videocapture.h"
+#include "../constants.h"
 
 calico::devices::observable_videocapture::observable_videocapture()
-	: m_capture(0, cv::CAP_DSHOW)
+	: m_capture(0, constants::cv_system_detected_video_capture_api)
 {
 }
 

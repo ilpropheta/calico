@@ -1,5 +1,6 @@
 #include "image_producer.h"
 #include "../signals.h"
+#include "../constants.h"
 #include "../errors.h"
 #include <opencv2/videoio.hpp>
 
@@ -33,7 +34,7 @@ void calico::producers::image_producer::so_evt_start()
 		c.make_agent<image_producer_broker>(this, m_commands);
 	});
 
-	cv::VideoCapture capture(0, cv::CAP_DSHOW);
+	cv::VideoCapture capture(0, constants::cv_system_detected_video_capture_api);
 	if (!capture.isOpened())
 	{
 		throw std::runtime_error("Can't connect to the webcam");
