@@ -13,10 +13,11 @@ namespace calico::agents
 		struct stream_up final : so_5::signal_t {};
 		struct stream_down final : so_5::signal_t {};
 
-		stream_detector(so_5::agent_context_t ctx, so_5::mbox_t channel, so_5::mbox_t output);
+		stream_detector(so_5::agent_context_t ctx, so_5::mbox_t channel, so_5::mbox_t output, std::chrono::milliseconds stream_end_timeout = std::chrono::milliseconds(500));
 		void so_define_agent() override;
 	private:
 		so_5::mbox_t m_channel;
 		so_5::mbox_t m_out_channel;
+		std::chrono::milliseconds m_stream_end_timeout;
 	};
 }

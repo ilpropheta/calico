@@ -8,3 +8,5 @@ endif()
 project ("calico")
 
 add_subdirectory ("calico")
+add_subdirectory ("calico_main")
+add_subdirectory ("calico_tests")

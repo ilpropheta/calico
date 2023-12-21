@@ -22,6 +22,7 @@ Every new post published in the series comes with a [tag](https://github.com/ilp
 
 - [sobjectizer](https://github.com/stiffstream/sobjectizer)
 - [opencv](https://github.com/opencv/opencv)
+- [gtest](https://github.com/google/googletest)
 
 To build and install these libraries, `vcpkg` is an option that works on several platforms (just bear in mind that, at the time of writing, the`opencv` build is broken on Linux - one alternative is installing from the system package manager - e.g. `apt-get install libopencv-dev`).
 
