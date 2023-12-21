@@ -13,7 +13,7 @@ TEST(virtual_image_producer_tests, should_not_produce_images_when_no_commands_ar
 	const auto fake_input = create_mchain(sobjectizer.environment());
 
 	sobjectizer.environment().introduce_coop([&](so_5::coop_t& c) {
-		c.make_agent<calico::producers::virtual_image_producer>(fake_input->as_mbox(), sobjectizer.environment().create_mbox(), R"(test_data\replay)");
+		c.make_agent<calico::producers::virtual_image_producer>(fake_input->as_mbox(), sobjectizer.environment().create_mbox(), R"(test_data/replay)");
 	});
 
 	EXPECT_EQ(receive(from(fake_input).handle_all().empty_timeout(10ms)).extracted(), 0);
