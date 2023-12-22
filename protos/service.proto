@@ -6,7 +6,7 @@ service calico_service {
 
 message send_command_request {
     string channel_name = 1;
-	string signal_name = 2;
+	string command_name = 2;
 }
 
 message send_command_response {    
