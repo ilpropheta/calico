@@ -23,7 +23,7 @@ find_package(protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 
 file(GLOB DATA_TO_COPY "data/*.*")
-file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico)
+file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico_main)
 
 if(WIN32)
   set(cv_cap_api "cv::CAP_DSHOW")
