@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+service calico_service {    
+	rpc send_command(send_command_request) returns (send_command_response);
+}
+
+message send_command_request {
+    string channel_name = 1;
+	string command_name = 2;
+}
+
+message send_command_response {    
+}

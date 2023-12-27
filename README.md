@@ -23,6 +23,7 @@ Every new post published in the series comes with a [tag](https://github.com/ilp
 - [sobjectizer](https://github.com/stiffstream/sobjectizer)
 - [opencv](https://github.com/opencv/opencv)
 - [gtest](https://github.com/google/googletest)
+- [grpc](https://github.com/grpc/grpc)
 
 To build and install these libraries, `vcpkg` is an option that works on several platforms (just bear in mind that, at the time of writing, the`opencv` build is broken on Linux - one alternative is installing from the system package manager - e.g. `apt-get install libopencv-dev`).
 
@@ -59,7 +60,7 @@ If you use `docker`, I pushed a [calico-builder](https://hub.docker.com/reposito
 
 If you want to rebuild the image yourself, the `Dockerfile` is here in the repository.
 
-The image is huge because it contains `grpc` that will be needed later in the series.
+The image is huge because it contains `grpc` that is used from episode `12`.
 
 Note that the webcam is not available from inside the container without some particular tweaks. Then you can simply use the `virtual_device` described in the series and also check if the images are flowing through agents like `image_tracer`, described in the series too.
 
