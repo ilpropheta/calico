@@ -2,6 +2,7 @@ syntax = "proto3";
 
 service calico_service {    
 	rpc send_command(send_command_request) returns (send_command_response);
+	rpc subscribe(subscribe_request) returns (stream subscribe_response);
 }
 
 message send_command_request {
@@ -10,4 +11,23 @@ message send_command_request {
 }
 
 message send_command_response {    
+}
+
+message subscribe_request {
+    repeated string channels = 1;
+}
+
+message subscribe_response {
+    string channel_name = 1;
+	image image = 2;	
+}
+
+message metadata {
+	string name = 1;
+	string value = 2;
+}
+
+message image {	
+    bytes data = 1;
+	repeated metadata metadata = 2;
 }

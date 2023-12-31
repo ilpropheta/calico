@@ -17,6 +17,7 @@ namespace calico
 	public:
 		explicit service_impl(service_params params);
 		grpc::Status send_command(grpc::ServerContext* context, const send_command_request* request, send_command_response* response) override;
+		grpc::Status subscribe(grpc::ServerContext* context, const subscribe_request* request, grpc::ServerWriter<subscribe_response>* writer) override;
 	private:
 		service_params m_params;
 	};
