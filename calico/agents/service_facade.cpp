@@ -43,7 +43,7 @@ private:
 };
 
 calico::service_impl::service_impl(service_params params)
-	: m_params(params)
+	: m_params(params), m_binder(so_5::disp::thread_pool::make_dispatcher(m_params.environment, 4).binder())
 {
 }
 
@@ -79,7 +79,7 @@ static std::vector<so_5::mbox_t> get_channels_from(so_5::environment_t& env, con
 
 grpc::Status calico::service_impl::subscribe([[maybe_unused]]grpc::ServerContext* context, const subscribe_request* request, grpc::ServerWriter<subscribe_response>* writer)
 {
-	return m_params.environment.introduce_coop([&, this](so_5::coop_t& coop) {
+	return m_params.environment.introduce_coop(m_binder, [&, this](so_5::coop_t& coop) {
 		return coop.make_agent<subscribe_client_agent>(*writer, get_channels_from(m_params.environment, *request))->get_status_future();
 	}).get();
 }

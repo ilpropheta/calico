@@ -20,6 +20,7 @@ namespace calico
 		grpc::Status subscribe(grpc::ServerContext* context, const subscribe_request* request, grpc::ServerWriter<subscribe_response>* writer) override;
 	private:
 		service_params m_params;
+		so_5::disp_binder_shptr_t m_binder;
 	};
 }
 
