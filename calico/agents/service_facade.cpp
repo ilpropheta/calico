@@ -18,9 +18,8 @@ public:
 			so_subscribe(channel).event([chan_name = channel->query_name(), this](const cv::Mat& image) {
 				subscribe_response response;
 				response.set_channel_name(chan_name);
-				std::vector<uchar> raw_data;
-				imencode(".jpg", image, raw_data, { cv::IMWRITE_JPEG_QUALITY, 95 });
-				response.mutable_image()->set_data(raw_data.data(), raw_data.size());
+				imencode(".jpg", image, m_raw_data, { cv::IMWRITE_JPEG_QUALITY, 95 });
+				response.mutable_image()->set_data(m_raw_data.data(), m_raw_data.size());
 				m_writer.Write(response);
 			});
 		}
@@ -38,6 +37,7 @@ public:
 
 private:
 	std::promise<grpc::Status> m_status_promise;
+	std::vector<uchar> m_raw_data;
 	grpc::ServerWriter<subscribe_response>& m_writer;
 	std::vector<so_5::mbox_t> m_channels;
 };
