@@ -22,6 +22,7 @@ public:
 				response.mutable_image()->set_data(m_raw_data.data(), m_raw_data.size());
 				if (!m_writer.Write(response))
 				{
+					so_deactivate_agent();
 					so_deregister_agent_coop_normally();
 				}
 			});
