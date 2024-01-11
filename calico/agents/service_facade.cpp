@@ -20,7 +20,11 @@ public:
 				response.set_channel_name(chan_name);
 				imencode(".jpg", image, m_raw_data, { cv::IMWRITE_JPEG_QUALITY, 95 });
 				response.mutable_image()->set_data(m_raw_data.data(), m_raw_data.size());
-				m_writer.Write(response);
+				if (!m_writer.Write(response))
+				{
+					so_deactivate_agent();
+					so_deregister_agent_coop_normally();
+				}
 			});
 		}
 	}
