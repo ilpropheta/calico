@@ -30,8 +30,7 @@ public:
 				response.mutable_image()->set_data(m_raw_data.data(), m_raw_data.size());
 				if (!m_writer.Write(response))
 				{
-					so_deactivate_agent();
-					so_deregister_agent_coop_normally();
+					deactivate_this_agent();
 				}
 			});
 		}
@@ -39,8 +38,7 @@ public:
 		so_subscribe_self().event([this](so_5::mhood_t<check_client_disconnection>) {
 			if (m_context.IsCancelled())
 			{
-				so_deactivate_agent();
-				so_deregister_agent_coop_normally();
+				deactivate_this_agent();
 			}
 		});
 	}
@@ -56,6 +54,12 @@ public:
 	}
 
 private:
+	void deactivate_this_agent()
+	{
+		so_deactivate_agent();
+		so_deregister_agent_coop_normally();
+	}
+
 	grpc::ServerContext& m_context;
 	grpc::ServerWriter<subscribe_response>& m_writer;
 	std::vector<so_5::mbox_t> m_channels;
