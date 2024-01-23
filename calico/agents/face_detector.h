@@ -11,11 +11,11 @@ namespace calico::agents
 	public:
 		face_detector(so_5::agent_context_t ctx, so_5::mbox_t input, so_5::mbox_t output);
 		face_detector(so_5::agent_context_t ctx, so_5::mbox_t input);
-		void so_define_agent() override;
 		void so_evt_start() override;
 		so_5::mbox_t output() const;
 	private:
-		so_5::mbox_t m_input; so_5::mbox_t m_output;
+		so_5::mbox_t m_input;
+		so_5::mbox_t m_output;
 		cv::CascadeClassifier m_classifier;
 	};
 }
