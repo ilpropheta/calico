@@ -27,8 +27,8 @@ so_5::mbox_t calico::agents::face_detector::output() const
 
 void calico::agents::face_detector::so_define_agent()
 {
-	so_subscribe(m_input).event([this](const cv::Mat& m) {
-		m_buffer.push(m);
+	so_subscribe(m_input).event([this](so_5::mhood_t<cv::Mat> m) {
+		m_buffer.push(m.make_holder());
 		if (m_buffer.size() == 1)
 		{
 			so_5::send<process_one_buffered_image>(*this);
@@ -38,10 +38,10 @@ void calico::agents::face_detector::so_define_agent()
 	so_subscribe_self().event([this](so_5::mhood_t<process_one_buffered_image>) {
 		cv::Mat gray;
 		const auto src = m_buffer.front();
-		cvtColor(src, gray, cv::COLOR_BGR2GRAY);
+		cvtColor(*src, gray, cv::COLOR_BGR2GRAY);
 		std::vector<cv::Rect> faces;
 		m_classifier.detectMultiScale(gray, faces, 1.1, 4);
-		auto cloned = src.clone();
+		auto cloned = src->clone();
 		for (const auto& [x, y, w, h] : faces)
 		{
 			rectangle(cloned, { x, y }, { x + w, y + h }, { 255, 0, 0 }, 2);

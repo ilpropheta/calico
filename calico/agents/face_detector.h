@@ -19,7 +19,7 @@ namespace calico::agents
 	private:
 		so_5::mbox_t m_input;
 		so_5::mbox_t m_output;
-		std::queue<cv::Mat> m_buffer;
+		std::queue<so_5::message_holder_t<cv::Mat>> m_buffer;
 		cv::CascadeClassifier m_classifier;
 	};
 }
