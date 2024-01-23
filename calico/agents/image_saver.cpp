@@ -50,5 +50,5 @@ void calico::agents::image_saver::so_evt_start()
 
 void calico::agents::image_saver::so_evt_finish()
 {
-	close_retain_content(so_5::terminate_if_throws, m_chain);
+	close_drop_content(so_5::terminate_if_throws, m_chain);
 }
