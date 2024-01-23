@@ -12,28 +12,32 @@ calico::agents::face_detector::face_detector(so_5::agent_context_t ctx, so_5::mb
 {
 }
 
-so_5::mbox_t calico::agents::face_detector::output() const
-{
-	return m_output;
-}
-
 void calico::agents::face_detector::so_evt_start()
 {
 	if (!m_classifier.load("haarcascade_frontalface_default.xml"))
 	{
 		throw std::runtime_error("Can't load face detector classifier 'haarcascade_frontalface_default.xml'");
 	}
+}
 
-	so_5::single_sink_binding_t binding;
-	const auto buffer = create_mchain(so_environment());
-	binding.bind<cv::Mat>(m_input, wrap_to_msink(buffer->as_mbox()));
+so_5::mbox_t calico::agents::face_detector::output() const
+{
+	return m_output;
+}
 
-	so_environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(so_environment()).binder(), [&](so_5::coop_t& c) {
-		c.make_agent<chain_closer>(buffer);
+void calico::agents::face_detector::so_define_agent()
+{
+	so_subscribe(m_input).event([this](const cv::Mat& m) {
+		m_buffer.push(m);
+		if (m_buffer.size() == 1)
+		{
+			so_5::send<process_one_buffered_image>(*this);
+		}
 	});
 
-	receive(from(buffer).handle_all(), [this](const cv::Mat& src) {
+	so_subscribe_self().event([this](so_5::mhood_t<process_one_buffered_image>) {
 		cv::Mat gray;
+		const auto src = m_buffer.front();
 		cvtColor(src, gray, cv::COLOR_BGR2GRAY);
 		std::vector<cv::Rect> faces;
 		m_classifier.detectMultiScale(gray, faces, 1.1, 4);
@@ -43,5 +47,11 @@ void calico::agents::face_detector::so_evt_start()
 			rectangle(cloned, { x, y }, { x + w, y + h }, { 255, 0, 0 }, 2);
 		}
 		so_5::send<cv::Mat>(m_output, std::move(cloned));
+
+		m_buffer.pop();
+		if (!m_buffer.empty())
+		{
+			so_5::send<process_one_buffered_image>(*this);
+		}
 	});
 }
