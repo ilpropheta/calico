@@ -1,6 +1,7 @@
 #pragma once
 #include <so_5/all.hpp>
 #include <opencv2/objdetect.hpp>
+#include <queue>
 
 namespace calico::agents
 {
@@ -8,14 +9,18 @@ namespace calico::agents
 	// requires 'haarcascade_frontalface_default.xml' available in the module directory
 	class face_detector final : public so_5::agent_t
 	{
+		struct process_one_buffered_image final : so_5::signal_t {};
 	public:
 		face_detector(so_5::agent_context_t ctx, so_5::mbox_t input, so_5::mbox_t output);
 		face_detector(so_5::agent_context_t ctx, so_5::mbox_t input);
-		void so_define_agent() override;
 		void so_evt_start() override;
 		so_5::mbox_t output() const;
+		void so_define_agent() override;
 	private:
-		so_5::mbox_t m_input; so_5::mbox_t m_output;
+		so_5::mbox_t m_input;
+		so_5::mbox_t m_output;
+		so_5::mchain_t m_buffer;
+		so_5::single_sink_binding_t m_binding;
 		cv::CascadeClassifier m_classifier;
 	};
 }

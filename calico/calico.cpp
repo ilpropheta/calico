@@ -3,10 +3,9 @@
 #include "constants.h"
 #include "gui_handling.h"
 #include "agents/image_viewer.h"
-#include "agents/image_viewer_live.h"
 #include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
-#include "agents/service_facade.h"
+#include "agents/face_detector.h"
 
 int calico::run()
 {
@@ -20,9 +19,7 @@ int calico::run()
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
-		c.make_agent<agents::maint_gui::image_viewer_live>(main_channel, message_queue);
-		c.make_agent<agents::maint_gui::image_viewer>(main_channel, message_queue);
-		c.make_agent<agents::service_facade>();
+		c.make_agent<agents::maint_gui::image_viewer>(c.make_agent<agents::face_detector>(main_channel)->output(), message_queue);
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
