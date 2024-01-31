@@ -5,7 +5,7 @@
 using namespace std::chrono_literals;
 
 calico::agents::image_viewer::image_viewer(so_5::agent_context_t ctx, so_5::mbox_t channel)
-	: agent_t(std::move(ctx)), m_channel(std::move(channel))
+	: agent_t(std::move(ctx) + limit_then_drop<cv::Mat>(100) + limit_then_drop<any_unspecified_message>(100)), m_channel(std::move(channel))
 {
 }
 
@@ -26,7 +26,7 @@ void calico::agents::image_viewer::so_define_agent()
 }
 
 calico::agents::maint_gui::image_viewer::image_viewer(so_5::agent_context_t ctx, so_5::mbox_t channel, so_5::mchain_t ui_queue)
-	: agent_t(std::move(ctx)), m_channel(std::move(channel)), m_message_queue(std::move(ui_queue))
+	: agent_t(std::move(ctx) + limit_then_drop<cv::Mat>(100) + limit_then_drop<any_unspecified_message>(100)), m_channel(std::move(channel)), m_message_queue(std::move(ui_queue))
 {
 }
 
