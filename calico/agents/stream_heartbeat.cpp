@@ -6,7 +6,7 @@
 using namespace std::chrono_literals;
 
 calico::agents::stream_heartbeat::stream_heartbeat(so_5::agent_context_t ctx, so_5::mbox_t channel)
-	: agent_t(std::move(ctx)), m_channel(std::move(channel))
+	: agent_t(std::move(ctx) + limit_then_drop<any_unspecified_message>(100)), m_channel(std::move(channel))
 {
 }
 

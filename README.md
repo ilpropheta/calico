@@ -2,7 +2,7 @@
 
 [![calico logo](calico.png)](calico.png)
 
-*Camera Lite Composer*, or just the project behind my blog series [SObjectizer Tales](https://marcoarena.wordpress.com/category/sobjectizer-tales).
+*Camera Lite Composer*, or just the project behind my blog series [SObjectizer Tales](https://marcoarena.wordpress.com/sobjectizer-tales/).
 
 `calico` is a (toy) C++ program that takes frames from your default video device (e.g. your webcam) and processes them asynchronously through a pipeline of components (*agents*) that can be combined as you like. `calico` is based on  [SObjectizer](https://github.com/stiffstream/sobjectizer), a library for developing concurrent applications through the power of *message passing* and *actor model*. Throughout the blog series, you will be exposed to some problems of this domain and you will learn how to use SObjectizer to deal with them.
 
