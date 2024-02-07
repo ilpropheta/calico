@@ -27,9 +27,12 @@ so_5::mbox_t calico::agents::face_detector::output() const
 
 void calico::agents::face_detector::so_define_agent()
 {
-	m_buffer = so_environment().create_mchain(so_5::make_unlimited_mchain_params().not_empty_notificator([this] {
-		so_5::send<process_one_buffered_image >(*this);
-	}));
+	m_buffer = so_environment().create_mchain(
+		so_5::make_limited_without_waiting_mchain_params(100, so_5::mchain_props::memory_usage_t::preallocated, so_5::mchain_props::overflow_reaction_t::drop_newest)
+		.not_empty_notificator([this] {
+			so_5::send<process_one_buffered_image >(*this);
+		})
+	);
 	m_binding.bind<cv::Mat>(m_input, wrap_to_msink(m_buffer->as_mbox()));
 
 	so_subscribe_self().event([this](so_5::mhood_t<process_one_buffered_image>) {
