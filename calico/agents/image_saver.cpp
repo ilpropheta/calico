@@ -52,3 +52,28 @@ void calico::agents::image_saver::so_evt_finish()
 {
 	close_drop_content(so_5::terminate_if_throws, m_chain);
 }
+
+calico::agents::image_saver_one_agent::image_saver_one_agent(so_5::agent_context_t ctx, so_5::mbox_t input, std::filesystem::path root_folder)
+	: agent_t(std::move(ctx)), m_input(std::move(input)), m_root_folder(std::move(root_folder))
+{
+
+}
+
+void calico::agents::image_saver_one_agent::so_evt_start()
+{
+	std::error_code ec;
+	if (create_directories(m_root_folder, ec); ec)
+	{
+		throw std::runtime_error(std::format("image_saver can't create root folder: {}", ec.message()));
+	}
+}
+
+void calico::agents::image_saver_one_agent::so_define_agent()
+{
+	so_subscribe(m_input).event([this](const cv::Mat& image) {
+		static std::atomic global_worker_id = 0;
+		thread_local const int worker_id = global_worker_id++;
+		thread_local int frame_id = 0;
+		imwrite((m_root_folder / std::format("image_{}_{}.jpg", worker_id, frame_id++)).string(), image);
+	}, so_5::thread_safe);
+}
