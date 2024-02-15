@@ -6,6 +6,7 @@
 #include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
 #include "agents/face_detector.h"
+#include "agents/image_saver.h"
 
 int calico::run()
 {
@@ -20,6 +21,9 @@ int calico::run()
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
 		c.make_agent<agents::maint_gui::image_viewer>(c.make_agent<agents::face_detector>(main_channel)->output(), message_queue);
+
+		const auto pool = so_5::disp::adv_thread_pool::make_dispatcher(sobjectizer.environment(), 2).binder(so_5::disp::adv_thread_pool::bind_params_t{}.fifo(so_5::disp::adv_thread_pool::fifo_t::individual));
+		c.make_agent_with_binder<agents::image_saver_one_agent>(pool, main_channel, "/images/");
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
