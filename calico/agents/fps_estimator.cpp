@@ -5,10 +5,9 @@
 
 using namespace std::chrono_literals;
 
-calico::agents::fps_estimator::fps_estimator(so_5::agent_context_t ctx, so_5::mbox_t input)
-	: agent_t(std::move(ctx)), m_input(std::move(input))
+calico::agents::fps_estimator::fps_estimator(so_5::agent_context_t ctx, std::vector<so_5::mbox_t> inputs)
+	: agent_t(std::move(ctx)), m_inputs(std::move(inputs))
 {
-
 }
 
 void calico::agents::fps_estimator::so_evt_start()
@@ -19,14 +18,22 @@ void calico::agents::fps_estimator::so_evt_start()
 
 void calico::agents::fps_estimator::so_define_agent()
 {
-	so_subscribe(m_input).event([this](const cv::Mat&) {
-		++m_counter;
-	});
-	so_subscribe_self().event([this](mhood_t<measure_fps>) {
+	for (const auto& input : m_inputs)
+	{
+		m_counters[input->query_name()] = 0;
+		so_subscribe(input).event([channel_name = input->query_name(), this](const cv::Mat&) {
+			++m_counters[channel_name];
+		});
+	}
+
+	so_subscribe_self().event([this](so_5::mhood_t<measure_fps>) {
 		const auto elapsed_time = std::chrono::duration<double>(std::chrono::steady_clock::now() - m_start);
-		const auto fps = m_counter / elapsed_time.count();
-		std::osyncstream(std::cout) << format("Estimated fps @{}=~{:.2f} ({} frames in ~{})\n", m_input->query_name(), fps, m_counter, std::chrono::round<std::chrono::seconds>(elapsed_time));
+		for (auto& [id, counter] : m_counters)
+		{
+			const auto fps = counter / elapsed_time.count();
+			std::osyncstream(std::cout) << std::format("Estimated fps @{}=~{:.2f} ({} frames in ~{})\n", id, fps, counter, std::chrono::round<std::chrono::seconds>(elapsed_time));
+			counter = 0;
+		}
 		m_start = std::chrono::steady_clock::now();
-		m_counter = 0;
 	});
 }

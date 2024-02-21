@@ -24,8 +24,7 @@ int calico::run()
 		const auto resized = c.make_agent<agents::image_resizer>(main_channel, 0.5)->output();
 		const auto decorated = c.make_agent<agents::face_detector>(resized)->output();
 
-		c.make_agent<agents::fps_estimator>(main_channel);
-		c.make_agent<agents::fps_estimator>(decorated);
+		c.make_agent<agents::fps_estimator>(std::vector{ main_channel, decorated });
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
