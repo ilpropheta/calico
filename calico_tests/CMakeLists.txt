@@ -6,6 +6,9 @@ add_executable (${TargetName} ${CppSources})
 
 find_package(GTest CONFIG REQUIRED)
 
+file(GLOB DATA_TO_COPY "${CMAKE_SOURCE_DIR}/calico/data/*.*")
+file(COPY ${DATA_TO_COPY} DESTINATION ${CMAKE_BINARY_DIR}/calico_tests)
+
 target_link_libraries(${TargetName} PRIVATE calico_core GTest::gmock GTest::gtest)
 
 add_custom_command(
