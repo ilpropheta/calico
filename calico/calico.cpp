@@ -6,7 +6,8 @@
 #include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
 #include "agents/face_detector.h"
-#include "agents/image_saver.h"
+#include "agents/fps_estimator.h"
+#include "agents/image_resizer.h"
 
 int calico::run()
 {
@@ -20,10 +21,10 @@ int calico::run()
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
-		c.make_agent<agents::maint_gui::image_viewer>(c.make_agent<agents::face_detector>(main_channel)->output(), message_queue);
+		const auto resized = c.make_agent<agents::image_resizer>(main_channel, 0.5)->output();
+		const auto decorated = c.make_agent<agents::face_detector>(resized)->output();
 
-		const auto pool = so_5::disp::adv_thread_pool::make_dispatcher(sobjectizer.environment(), 2).binder(so_5::disp::adv_thread_pool::bind_params_t{}.fifo(so_5::disp::adv_thread_pool::fifo_t::individual));
-		c.make_agent_with_binder<agents::image_saver_one_agent>(pool, main_channel, "/images/");
+		c.make_agent<agents::fps_estimator>(std::vector{ main_channel, decorated });
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
