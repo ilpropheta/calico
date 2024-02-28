@@ -110,3 +110,39 @@ TEST(performance_tests, face_detector_service_time)
 		std::cout << std::format("face_detector average service time calculated on {} frames is: {}s\n", messages_count, service_time_avg);
 	});
 }
+
+TEST(performance_tests, two_image_resizers_in_parallel)
+{
+	constexpr unsigned messages_count = 100;
+
+	so_5::wrapped_env_t sobjectizer;
+	auto& env = sobjectizer.environment();
+
+	auto input_channel = env.create_mbox();
+	auto output_channel = env.create_mbox();
+
+	auto measure_output1 = create_mchain(env);
+	auto measure_output2 = create_mchain(env);
+
+	env.introduce_coop(service_time_estimator_dispatcher::make(env, measure_output1->as_mbox(), messages_count), [&](so_5::coop_t& coop) {
+		coop.make_agent<calico::agents::image_resizer>(input_channel, output_channel, 4);
+	});
+
+	env.introduce_coop(service_time_estimator_dispatcher::make(env, measure_output2->as_mbox(), messages_count), [&](so_5::coop_t& coop) {
+		coop.make_agent<calico::agents::image_resizer>(input_channel, output_channel, 4);
+	});
+
+	const auto test_frame = cv::imread("test_data/replay/1.jpg");
+	for (auto i = 0u; i < messages_count; ++i)
+	{
+		so_5::send<cv::Mat>(input_channel, test_frame);
+	}
+
+	receive(from(measure_output1).handle_n(1), [](double service_time_avg) {
+		std::cout << std::format("image_resizer(1) average service time calculated on {} frames is: {:.5f}s\n", messages_count, service_time_avg);
+	});
+
+	receive(from(measure_output2).handle_n(1), [](double service_time_avg) {
+		std::cout << std::format("image_resizer(2) average service time calculated on {} frames is: {:.5f}s\n", messages_count, service_time_avg);
+	});
+}
