@@ -46,7 +46,7 @@ private:
 	unsigned int m_received = 0;
 };
 
-// purpose: assess the cost of registering agents
+// Cost of registering agents
 TEST(benchmarks, skynet)
 {
 	const so_5::wrapped_env_t sobjectizer;
@@ -64,4 +64,28 @@ TEST(benchmarks, skynet)
 	std::cout << std::chrono::duration<double>(std::chrono::steady_clock::now() - tic) << "\n";
 
 	EXPECT_THAT(result, testing::Eq(499999500000));
+}
+
+// Cost of registering and deregistering agents
+TEST(benchmarks, skynet_with_deregistration)
+{
+	std::chrono::steady_clock::time_point tic;
+
+	{
+		const so_5::wrapped_env_t sobjectizer;
+		const auto output = create_mchain(sobjectizer.environment());
+		tic = std::chrono::steady_clock::now();
+
+		sobjectizer.environment().introduce_coop([&](so_5::coop_t& c) {
+			c.make_agent<skynet>(output->as_mbox(), 0u, 1000000u);
+		});
+
+		size_t result = 0;
+		receive(from(output).handle_n(1), [&](size_t i) {
+			result = i;
+		});
+		EXPECT_THAT(result, testing::Eq(499999500000));
+	}
+
+	std::cout << std::chrono::duration<double>(std::chrono::steady_clock::now() - tic) << "\n";
 }
