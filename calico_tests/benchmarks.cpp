@@ -651,3 +651,164 @@ TEST(benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_cpu_
 {
 	do_messaging_one_to_many_benchmark<10000, cpu_worker>(100, [](so_5::environment_t& env) { return so_5::disp::thread_pool::make_dispatcher(env, 4).binder(so_5::disp::thread_pool::bind_params_t{}.fifo(so_5::disp::thread_pool::fifo_t::individual).max_demands_at_once(1)); });
 }
+
+//// Bulk effect
+
+template<unsigned workers_count>
+class master final : public so_5::agent_t
+{
+public:
+	master(so_5::agent_context_t c)
+		: agent_t(std::move(c))
+	{
+
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self().event([this](unsigned worker_id) {
+			m_done_received[worker_id] = true;
+			if (m_done_received.all())
+			{
+				so_environment().stop();
+			}
+			});
+	}
+
+private:
+	std::bitset<workers_count> m_done_received;
+};
+
+class worker : public so_5::agent_t
+{
+	struct self_signal final : so_5::signal_t {};
+public:
+	worker(so_5::agent_context_t c, unsigned message_count, unsigned start_batch, unsigned worker_id, so_5::mbox_t dest)
+		: agent_t(std::move(c)), m_message_count(message_count), m_start_batch(std::max(1u, start_batch)), m_worker_id(worker_id), m_output(std::move(dest))
+	{
+	}
+
+	void so_evt_start() override
+	{
+		for (auto i = 0u; i < m_start_batch; ++i)
+		{
+			so_5::send<self_signal>(*this);
+		}
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self().event([this](so_5::mhood_t<self_signal>) {
+			if (--m_message_count != 0)
+			{
+				so_5::send<self_signal>(*this);
+			}
+			else
+			{
+				so_5::send<unsigned>(m_output, m_worker_id);
+			}
+			});
+	}
+
+private:
+	unsigned m_message_count;
+	unsigned m_start_batch;
+	unsigned m_worker_id;
+	so_5::mbox_t m_output;
+};
+
+template<unsigned workers_count>
+void do_self_send_benchmark(unsigned message_count, unsigned start_batch, auto workers_dispatcher_maker)
+{
+	const auto tic = std::chrono::steady_clock::now();
+
+	so_5::launch([=](so_5::environment_t& env) {
+		env.introduce_coop([&](so_5::coop_t& coop) {
+			const auto workers_dispatcher = workers_dispatcher_maker(env);
+			const auto master_mbox = coop.make_agent<master<workers_count>>()->so_direct_mbox();
+			for (auto i = 0u; i<workers_count; ++i)
+			{
+				coop.make_agent_with_binder<worker>(workers_dispatcher, message_count, start_batch, i, master_mbox);
+			}
+			});
+		});
+
+	const auto elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - tic).count();
+	std::cout << std::format("self-send (message_count={} worker_count={}) elapsed={}\n", message_count, workers_count, elapsed);
+}
+
+static auto make_thread_pool(so_5::environment_t& env, size_t size, size_t max_demands_at_once)
+{
+	return make_dispatcher(env, "workers",
+		so_5::disp::thread_pool::disp_params_t{}
+		.thread_count(size))
+		.binder(so_5::disp::thread_pool::bind_params_t{}.
+			fifo(so_5::disp::thread_pool::fifo_t::individual)
+			.max_demands_at_once(max_demands_at_once)
+		);
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_100)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100); });
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_100)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 100); });
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_4)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 4); });
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_4)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4); });
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_1)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1); });
+}
+
+TEST(benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_1)
+{
+	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 1); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_1)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_4)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 4); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_100)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_1000)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1000); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_10000)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 10000); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_50000)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 50000); });
+}
+
+TEST(benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_100000)
+{
+	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100000); });
+}
