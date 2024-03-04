@@ -285,3 +285,15 @@ TEST(benchmarks, ping_pong_single_thread)
 		});
 	});
 }
+
+TEST(benchmarks, ping_pong_multi_thread)
+{
+	so_5::launch([](so_5::environment_t& env) {
+		env.introduce_coop(so_5::disp::active_obj::make_dispatcher(env).binder(), [&](so_5::coop_t& coop) {
+			const auto pinger_agent = coop.make_agent<pinger>(100000);
+			const auto ponger_agent = coop.make_agent<ponger>();
+			pinger_agent->set_ponger_channel(ponger_agent->so_direct_mbox());
+			ponger_agent->set_pinger_channel(pinger_agent->so_direct_mbox());
+		});
+	});
+}
