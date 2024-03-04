@@ -148,6 +148,7 @@ struct skynet_bench_params
 	so_5::disp::thread_pool::fifo_t fifo_strategy;
 };
 
+// Cost of registering and deregistering agents bound to thread pools
 void do_skynet_thread_pool_benchmark(const skynet_bench_params& params)
 {
 	std::chrono::steady_clock::time_point tic;
@@ -274,6 +275,7 @@ private:
 	so_5::mbox_t m_pinger_channel;
 };
 
+// Cost of exchanging messages in 1:1 interaction - pinger and ponger on the same thread
 TEST(benchmarks, ping_pong_single_thread)
 {
 	so_5::launch([](so_5::environment_t& env) {
@@ -286,6 +288,7 @@ TEST(benchmarks, ping_pong_single_thread)
 	});
 }
 
+// Cost of exchanging messages in 1:1 interaction - pinger and ponger on dedicated threads
 TEST(benchmarks, ping_pong_multi_thread)
 {
 	so_5::launch([](so_5::environment_t& env) {
@@ -294,6 +297,105 @@ TEST(benchmarks, ping_pong_multi_thread)
 			const auto ponger_agent = coop.make_agent<ponger>();
 			pinger_agent->set_ponger_channel(ponger_agent->so_direct_mbox());
 			ponger_agent->set_pinger_channel(pinger_agent->so_direct_mbox());
+		});
+	});
+}
+
+// Cost of exchanging messages in 1:1 interaction - pinger and ponger on thread pool (size=2, cooperation fifo)
+TEST(benchmarks, ping_pong_thread_pool_cooperation_fifo)
+{
+	so_5::launch([](so_5::environment_t& env) {
+		env.introduce_coop(so_5::disp::thread_pool::make_dispatcher(env, 2).binder(so_5::disp::thread_pool::bind_params_t{}.fifo(so_5::disp::thread_pool::fifo_t::cooperation)), [&](so_5::coop_t& coop) {
+			const auto pinger_agent = coop.make_agent<pinger>(100000);
+			const auto ponger_agent = coop.make_agent<ponger>();
+			pinger_agent->set_ponger_channel(ponger_agent->so_direct_mbox());
+			ponger_agent->set_pinger_channel(pinger_agent->so_direct_mbox());
+		});
+	});
+}
+
+// Cost of exchanging messages in 1:1 interaction - pinger and ponger on thread pool (size=2, individual fifo)
+TEST(benchmarks, ping_pong_thread_pool_individual_fifo)
+{
+	so_5::launch([](so_5::environment_t& env) {
+		env.introduce_coop(so_5::disp::thread_pool::make_dispatcher(env, 2).binder(so_5::disp::thread_pool::bind_params_t{}.fifo(so_5::disp::thread_pool::fifo_t::individual)), [&](so_5::coop_t& coop) {
+			const auto pinger_agent = coop.make_agent<pinger>(100000);
+			const auto ponger_agent = coop.make_agent<ponger>();
+			pinger_agent->set_ponger_channel(ponger_agent->so_direct_mbox());
+			ponger_agent->set_pinger_channel(pinger_agent->so_direct_mbox());
+		});
+	});
+}
+
+class pinger_named final : public so_5::agent_t
+{
+public:
+	pinger_named(so_5::agent_context_t ctx, unsigned count)
+		: agent_t(std::move(ctx)), m_pings_count(count), m_pings_left(count), m_ponger_channel(so_environment().create_mbox("ponger"))
+	{
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe(so_environment().create_mbox("pinger")).event([this](so_5::mhood_t<pong_signal>) {
+			send_ping();
+		});
+	}
+
+	void so_evt_start() override
+	{
+		m_start = std::chrono::steady_clock::now();
+		send_ping();
+	}
+
+private:
+	void send_ping() {
+		if (m_pings_left)
+		{
+			so_5::send<ping_signal>(m_ponger_channel);
+			--m_pings_left;
+		}
+		else
+		{
+			const auto diff = std::chrono::duration<double>(std::chrono::steady_clock::now() - m_start);
+			const auto freq = m_pings_count / diff.count();
+			std::cout << std::format("ping-pong count={} elapsed={} throughput={:.2f} mex/s real-throughput={:.2f} mex/s\n", m_pings_count, diff, freq, freq * 2);
+			so_environment().stop();
+		}
+	}
+
+	std::chrono::time_point<std::chrono::steady_clock> m_start;
+	unsigned m_pings_count;
+	unsigned m_pings_left;
+	so_5::mbox_t m_ponger_channel;
+};
+
+class ponger_named final : public so_5::agent_t
+{
+public:
+	ponger_named(so_5::agent_context_t ctx)
+		: agent_t(std::move(ctx)), m_pinger_channel(so_environment().create_mbox("pinger"))
+	{
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe(so_environment().create_mbox("ponger")).event([this](so_5::mhood_t<ping_signal>) {
+			so_5::send<pong_signal>(m_pinger_channel);
+		});
+	}
+
+private:
+	so_5::mbox_t m_pinger_channel;
+};
+
+// Cost of exchanging messages in 1:1 interaction using named channels (multi-producer multi-consumer) - pinger and ponger on the same thread
+TEST(benchmarks, ping_pong_named_channels)
+{
+	so_5::launch([](so_5::environment_t& env) {
+		env.introduce_coop([&](so_5::coop_t& coop) {
+			coop.make_agent<pinger_named>(100000);
+			coop.make_agent<ponger_named>();
 		});
 	});
 }
