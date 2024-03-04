@@ -196,3 +196,92 @@ INSTANTIATE_TEST_SUITE_P(individual_fifo, skynet_thread_pool_benchmarks,
 		skynet_bench_params{ .thread_pool_size = 4, .fifo_strategy = so_5::disp::thread_pool::fifo_t::individual },
 		skynet_bench_params{ .thread_pool_size = 8, .fifo_strategy = so_5::disp::thread_pool::fifo_t::individual }
 ));
+
+//// 1:1 messaging
+
+struct ping_signal final : so_5::signal_t {};
+struct pong_signal final : so_5::signal_t {};
+
+class pinger final : public so_5::agent_t
+{
+public:
+	pinger(so_5::agent_context_t ctx, unsigned count)
+		: agent_t(std::move(ctx)), m_pings_count(count), m_pings_left(count)
+	{
+	}
+
+	void set_ponger_channel(so_5::mbox_t other)
+	{
+		m_ponger_channel = std::move(other);
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self().event([this](so_5::mhood_t<pong_signal>) {
+			send_ping();
+		});
+	}
+
+	void so_evt_start() override
+	{
+		m_start = std::chrono::steady_clock::now();
+		send_ping();
+	}
+
+private:
+	void send_ping() {
+		if (m_pings_left)
+		{
+			so_5::send<ping_signal>(m_ponger_channel);
+			--m_pings_left;
+		}
+		else
+		{
+			const auto diff = std::chrono::duration<double>(std::chrono::steady_clock::now() - m_start);
+			const auto freq = m_pings_count / diff.count();
+			std::cout << std::format("ping-pong count={} throughput={:.2f} mex/s real-throughput={:.2f} mex/s\n", m_pings_count, freq, freq * 2);
+			so_environment().stop();
+		}
+	}
+
+	std::chrono::time_point<std::chrono::steady_clock> m_start;
+	unsigned m_pings_count;
+	unsigned m_pings_left;
+	so_5::mbox_t m_ponger_channel;
+};
+
+class ponger final : public so_5::agent_t
+{
+public:
+	ponger(so_5::agent_context_t ctx)
+		: agent_t(std::move(ctx))
+	{
+	}
+
+	void set_pinger_channel(so_5::mbox_t other)
+	{
+		m_pinger_channel = std::move(other);
+	}
+
+	void so_define_agent() override
+	{
+		so_subscribe_self().event([this](so_5::mhood_t<ping_signal>) {
+			so_5::send<pong_signal>(m_pinger_channel);
+		});
+	}
+
+private:
+	so_5::mbox_t m_pinger_channel;
+};
+
+TEST(benchmarks, ping_pong_single_thread)
+{
+	so_5::launch([](so_5::environment_t& env) {
+		env.introduce_coop([&](so_5::coop_t& coop) {
+			const auto pinger_agent = coop.make_agent<pinger>(100000);
+			const auto ponger_agent = coop.make_agent<ponger>();
+			pinger_agent->set_ponger_channel(ponger_agent->so_direct_mbox());
+			ponger_agent->set_pinger_channel(pinger_agent->so_direct_mbox());
+		});
+	});
+}
