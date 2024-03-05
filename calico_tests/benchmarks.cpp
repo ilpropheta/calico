@@ -505,6 +505,18 @@ static auto make_thread_pool(so_5::environment_t& env, size_t size, size_t max_d
 		);
 }
 
+struct thread_pool_maker
+{
+	size_t size = 1;
+	size_t max_demands_at_once = 4;
+	so_5::disp::thread_pool::fifo_t fifo = so_5::disp::thread_pool::fifo_t::individual;
+
+	auto operator()(so_5::environment_t& env) const
+	{
+		return make_thread_pool(env, size, max_demands_at_once, fifo);
+	}
+};
+
 TEST(DISABLED_benchmarks, messaging_one_to_many_noop_shared_thread)
 {
 	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, [](so_5::environment_t& env) { return so_5::disp::active_group::make_dispatcher(env).binder("workers"); });
@@ -517,17 +529,17 @@ TEST(DISABLED_benchmarks, messaging_one_to_many_noop_dedicated_thread)
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_noop_cooperation_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::cooperation); });
+	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, thread_pool_maker{ .size = 4, .max_demands_at_once = 4, .fifo = so_5::disp::thread_pool::fifo_t::cooperation } );
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_noop_individual_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, thread_pool_maker{ .size = 4, .max_demands_at_once = 4, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_noop_individual_size_4_thread_pool_max_demands_at_once_1)
 {
-	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 1, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<100, noop_worker>(100000, thread_pool_maker{ .size = 4, .max_demands_at_once = 1, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_noop_shared_thread)
@@ -542,17 +554,17 @@ TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_c
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_noop_cooperation_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::cooperation); });
+	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::cooperation });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_noop_individual_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_noop_individual_size_4_thread_pool_max_demands_at_once_1)
 {
-	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, [](so_5::environment_t& env) {  return make_thread_pool(env, 4, 1, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<10000, noop_worker>(1000, thread_pool_maker{ .size = 4, .max_demands_at_once = 1, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 class sleeping_worker final : public so_5::agent_t
@@ -593,12 +605,12 @@ TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_low_message_co
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_low_message_count_sleeping_cooperation_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, sleeping_worker>(100, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::cooperation); });
+	do_messaging_one_to_many_benchmark<100, sleeping_worker>(100, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::cooperation });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_low_message_count_sleeping_individual_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, sleeping_worker>(100, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<100, sleeping_worker>(100, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 class cpu_worker final : public so_5::agent_t
@@ -640,17 +652,17 @@ TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_huge_message_c
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_huge_message_count_cpu_usage_cooperation_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::cooperation); });
+	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::cooperation });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_huge_message_count_cpu_usage_individual_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_low_workers_count_huge_message_count_cpu_usage_individual_size_16_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, [](so_5::environment_t& env) { return  make_thread_pool(env, 16, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<100, cpu_worker>(10000, thread_pool_maker{ .size = 16, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_cpu_usage_dedicated_thread)
@@ -660,12 +672,12 @@ TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_c
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_cpu_usage_individual_size_4_thread_pool)
 {
-	do_messaging_one_to_many_benchmark<10000, cpu_worker>(100, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 4, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<10000, cpu_worker>(100, thread_pool_maker{ .size = 4, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 TEST(DISABLED_benchmarks, messaging_one_to_many_huge_workers_count_low_message_count_cpu_usage_individual_size_4_thread_pool_max_demands_at_once_1)
 {
-	do_messaging_one_to_many_benchmark<10000, cpu_worker>(100, [](so_5::environment_t& env) { return  make_thread_pool(env, 4, 1, so_5::disp::thread_pool::fifo_t::individual); });
+	do_messaging_one_to_many_benchmark<10000, cpu_worker>(100, thread_pool_maker{ .size = 4, .max_demands_at_once = 1, .fifo = so_5::disp::thread_pool::fifo_t::individual });
 }
 
 //// Bulk effect
@@ -755,65 +767,65 @@ void do_self_send_benchmark(unsigned message_count, unsigned start_batch, auto w
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_100)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 16, .max_demands_at_once = 100 });
 }
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_100)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 100); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 4, .max_demands_at_once = 100 });
 }
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_4)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 4); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 16, .max_demands_at_once = 4 });
 }
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_4)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 4); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 4, .max_demands_at_once = 4 });
 }
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_16_max_demands_at_once_1)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 16, .max_demands_at_once = 1 });
 }
 
 TEST(DISABLED_benchmarks, self_send_50_workers_1M_messages_pool_4_max_demands_at_once_1)
 {
-	do_self_send_benchmark<50>(1000000, 1, [](so_5::environment_t& env) { return make_thread_pool(env, 4, 1); });
+	do_self_send_benchmark<50>(1000000, 1, thread_pool_maker{ .size = 4, .max_demands_at_once = 1 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_1)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 1 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_4)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 4); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 4 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_100)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 100 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_1000)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 1000); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 1000 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_10000)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 10000); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 10000 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_50000)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 50000); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 50000 });
 }
 
 TEST(DISABLED_benchmarks, self_send_1k_workers_1M_messages_100_start_batch_pool_16_max_demands_at_once_100000)
 {
-	do_self_send_benchmark<1000>(1000000, 100, [](so_5::environment_t& env) { return make_thread_pool(env, 16, 100000); });
+	do_self_send_benchmark<1000>(1000000, 100, thread_pool_maker{ .size = 16, .max_demands_at_once = 100000 });
 }
