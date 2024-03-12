@@ -5,9 +5,7 @@
 #include "agents/image_viewer.h"
 #include "agents/remote_control.h"
 #include "producers/image_producer_recursive.h"
-#include "agents/face_detector.h"
-#include "agents/fps_estimator.h"
-#include "agents/image_resizer.h"
+#include "agents/static_pipeline.h"
 
 int calico::run()
 {
@@ -18,13 +16,17 @@ int calico::run()
 	const auto commands_channel = sobjectizer.environment().create_mbox("commands");
 	const auto message_queue = create_mchain(sobjectizer.environment());
 
-	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
-		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
-		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
-		const auto resized = c.make_agent<agents::image_resizer>(main_channel, 0.5)->output();
-		const auto decorated = c.make_agent<agents::face_detector>(resized)->output();
+	// setup of the static pipeline
+	sobjectizer.environment().introduce_coop(so_5::disp::active_group::make_dispatcher(sobjectizer.environment()).binder("pipeline"), [&](so_5::coop_t& c) {
+		auto step_3_dst = c.make_agent<agents::static_pipeline::step_3>()->so_direct_mbox();  // this sends data to "output" channel
+		auto step_2_dst = c.make_agent<agents::static_pipeline::step_2>(step_3_dst)->so_direct_mbox();
+		c.make_agent<agents::static_pipeline::step_1>(step_2_dst); // this gets data from "main" channel
+	});
 
-		c.make_agent<agents::fps_estimator>(std::vector{ main_channel, decorated });
+	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
+		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel); // this sends data to "main" channel
+		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
+		c.make_agent<agents::maint_gui::image_viewer>(sobjectizer.environment().create_mbox("output"), message_queue);
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
