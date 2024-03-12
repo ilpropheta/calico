@@ -57,4 +57,28 @@ namespace calico::agents::routing_slip
 	private:
 		so_5::mbox_t m_destination;
 	};
+
+	template<typename Action, typename T>
+	class slip_generic_step : public so_5::agent_t, public Action
+	{
+	public:
+		slip_generic_step(so_5::agent_context_t ctx, Action action)
+			: agent_t(ctx), Action(std::move(action))
+		{
+		}
+
+		void so_define_agent() override
+		{
+			so_subscribe_self().event([this](so_5::mutable_mhood_t<route_slip_message<T>> msg) {
+				this->operator()(msg);
+				send_to_next_step(std::move(msg));
+			});
+		}
+	};
+
+	template<typename T>
+	auto make_generic_step(so_5::coop_t& c, auto lambda)
+	{
+		return c.make_agent<slip_generic_step<decltype(lambda), T>>(std::move(lambda))->so_direct_mbox();
+	}
 }

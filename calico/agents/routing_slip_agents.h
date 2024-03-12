@@ -1,31 +1,11 @@
 #pragma once
 #include <so_5/all.hpp>
 
-// Some agents to demonstrate the application of the "routing slip pattern"
-// The user only sees "slip_router" which automatically creates the available agents and make them available.
+// Demonstrates the usage of the "routing slip pattern".
+// In this version, implementation details of agents are hidden in the slip_router, just to show
+// the usage of calico::agents::routing_slip::make_generic_step
 namespace calico::agents::dynamic_pipeline
 {
-	class resize_step final : public so_5::agent_t
-	{
-	public:
-		resize_step(so_5::agent_context_t ctx);
-		void so_define_agent() override;
-	};
-
-	class add_crosshairs_step final : public so_5::agent_t
-	{
-	public:
-		add_crosshairs_step(so_5::agent_context_t ctx);
-		void so_define_agent() override;
-	};
-
-	class to_grayscale_step final : public so_5::agent_t
-	{
-	public:
-		to_grayscale_step(so_5::agent_context_t ctx);
-		void so_define_agent() override;
-	};
-
 	class slip_router : public so_5::agent_t
 	{
 	public:
