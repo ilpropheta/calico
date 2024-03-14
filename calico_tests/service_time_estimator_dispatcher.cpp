@@ -6,38 +6,38 @@ service_time_estimator_dispatcher::service_time_estimator_dispatcher(so_5::envir
 	m_worker = std::jthread{ [messages_count, this] {
 		const auto thread_id = so_5::query_current_thread_id();
 
-		receive(from(m_start_finish_queue).handle_n(1), [thread_id, this](so_5::execution_demand_t d) {
-			d.call_handler(thread_id);
+		receive(from(m_start_finish_queue).handle_n(1), [thread_id, this](so_5::mutable_mhood_t<so_5::execution_demand_t> d) {
+			d->call_handler(thread_id);
 		});
 
-		receive(from(m_event_queue).handle_n(messages_count), [thread_id, this](so_5::execution_demand_t d) {
+		receive(from(m_event_queue).handle_n(messages_count), [thread_id, this](so_5::mutable_mhood_t<so_5::execution_demand_t> d) {
 			const auto tic = std::chrono::steady_clock::now();
-			d.call_handler(thread_id);
+			d->call_handler(thread_id);
 			const auto toc = std::chrono::steady_clock::now();
 			m_total_elapsed += std::chrono::duration<double>(toc - tic).count();
 		});
 
 		so_5::send<double>(m_output, m_total_elapsed / messages_count);
 
-		receive(from(m_start_finish_queue).handle_n(1), [thread_id, this](so_5::execution_demand_t d) {
-			d.call_handler(thread_id);
+		receive(from(m_start_finish_queue).handle_n(1), [thread_id, this](so_5::mutable_mhood_t<so_5::execution_demand_t> d) {
+			d->call_handler(thread_id);
 		});
 	} };
 }
 
 void service_time_estimator_dispatcher::push(so_5::execution_demand_t demand)
 {
-	so_5::send<so_5::execution_demand_t>(m_event_queue, std::move(demand));
+	so_5::send<so_5::mutable_msg<so_5::execution_demand_t>>(m_event_queue, std::move(demand));
 }
 
 void service_time_estimator_dispatcher::push_evt_start(so_5::execution_demand_t demand)
 {
-	so_5::send<so_5::execution_demand_t>(m_start_finish_queue, std::move(demand));
+	so_5::send<so_5::mutable_msg<so_5::execution_demand_t>>(m_start_finish_queue, std::move(demand));
 }
 
 void service_time_estimator_dispatcher::push_evt_finish(so_5::execution_demand_t demand) noexcept
 {
-	so_5::send<so_5::execution_demand_t>(m_start_finish_queue, std::move(demand));
+	so_5::send<so_5::mutable_msg<so_5::execution_demand_t>>(m_start_finish_queue, std::move(demand));
 }
 
 void service_time_estimator_dispatcher::preallocate_resources(so_5::agent_t&)
