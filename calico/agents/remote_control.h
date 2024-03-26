@@ -3,8 +3,8 @@
 
 namespace calico::agents
 {
-	// displays a tiny frame where "Enter" and "Escape" are turned, respectively, into 'start_acquisition_command'
-	// and 'stop_acquisition_command', and are sent to the input channel
+	// displays a tiny frame where "Enter", "Escape", and "t" are turned, respectively, into 'start_acquisition_command'
+	// 'stop_acquisition_command' and 'enable_telemetry_command', and are sent to the input channel
 	class remote_control final : public so_5::agent_t
 	{
 		struct keep_on final : so_5::signal_t {};
@@ -18,8 +18,8 @@ namespace calico::agents
 
 	namespace maint_gui
 	{
-		// displays a tiny frame where "Enter" and "Escape" are turned, respectively, into 'start_acquisition_command'
-		// and 'stop_acquisition_command', and are sent to the input channel
+		// displays a tiny frame where "Enter", "Escape" and "t" are turned, respectively, into 'start_acquisition_command'
+		// 'stop_acquisition_command', and 'enable_telemetry_command', and are sent to the input channel
 		// This version uses the message loop approach, sending an initial imshow_message to 'ui_queue' and
 		// receiving waitkey_messages from 'constants::waitkey_out' channel
 		class remote_control final : public so_5::agent_t

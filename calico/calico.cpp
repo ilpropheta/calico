@@ -5,6 +5,7 @@
 #include "agents/image_cache.h"
 #include "agents/image_tracer.h"
 #include "agents/remote_control.h"
+#include "agents/telemetry_agent.h"
 #include "producers/image_producer_recursive.h"
 
 int calico::run()
@@ -19,10 +20,8 @@ int calico::run()
 	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
-
-		const auto cache_out = sobjectizer.environment().create_mbox();
-		c.make_agent<agents::image_cache>(main_channel, cache_out, 50);
-		c.make_agent<agents::image_tracer>(cache_out);
+		c.make_agent<agents::image_tracer>(main_channel);
+		c.make_agent<agents::telemetry_agent>();
 	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
