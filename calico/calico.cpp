@@ -17,10 +17,9 @@ int calico::run()
 	const auto commands_channel = sobjectizer.environment().create_mbox("commands");
 	const auto message_queue = create_mchain(sobjectizer.environment());
 
-	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment()).binder(), [&](so_5::coop_t& c) {
+	sobjectizer.environment().introduce_coop(so_5::disp::active_obj::make_dispatcher(sobjectizer.environment(), "calico_active_object").binder(), [&](so_5::coop_t& c) {
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
-		c.make_agent<agents::image_tracer>(main_channel);
 		c.make_agent<agents::telemetry_agent>();
 	});
 
