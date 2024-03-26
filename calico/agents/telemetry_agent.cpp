@@ -29,11 +29,17 @@ void calico::agents::telemetry_agent::so_define_agent()
 	});
 
 	so_set_delivery_filter(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::quantity<size_t>& q) {
-		return std::string_view(q.m_prefix.c_str()).find("/ao/calico_active_object") != std::string_view::npos;
+		return std::string_view(q.m_prefix.c_str()).find("/ao/face_detector") != std::string_view::npos;
 	});
 
 	st_turned_on.event(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::quantity<size_t>& q) {
 		std::osyncstream(std::cout) << q.m_prefix << q.m_suffix << "=" << q.m_value << "\n";
+	});
+
+	st_turned_on.event(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::work_thread_activity& q) {
+		std::osyncstream(std::cout) << q.m_prefix.c_str() << q.m_suffix.c_str() << "[" << q.m_thread_id << "]\n"
+			<< "  working: " << q.m_stats.m_working_stats << "\n"
+			<< "  waiting: " << q.m_stats.m_waiting_stats << "\n";
 	});
 
 	st_turned_off.activate();
