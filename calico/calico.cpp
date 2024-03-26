@@ -20,10 +20,9 @@ int calico::run()
 		c.make_agent<producers::image_producer_recursive>(main_channel, commands_channel);
 		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
 
-		c.make_agent_with_binder<agents::face_detector>(
-			make_dispatcher(sobjectizer.environment(), "face_detector",
-				so_5::disp::active_obj::disp_params_t{}.turn_work_thread_activity_tracking_on()).binder(),
-			main_channel);
+		const auto disp = make_dispatcher(sobjectizer.environment(), "face_detector", so_5::disp::active_obj::disp_params_t{}.turn_work_thread_activity_tracking_on()).binder();
+		c.make_agent_with_binder<agents::face_detector>(disp, main_channel);
+		c.make_agent_with_binder<agents::face_detector>(disp, main_channel);
 
 		c.make_agent<agents::telemetry_agent>();
 	});
