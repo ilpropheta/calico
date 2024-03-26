@@ -21,6 +21,13 @@ void calico::agents::telemetry_agent::so_define_agent()
 		st_turned_off.activate();
 	});
 
+	st_turned_on.event(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::distribution_started&) {
+		std::osyncstream(std::cout) << "telemetry batch starts----\n";
+	});
+	st_turned_on.event(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::distribution_finished&) {
+		std::osyncstream(std::cout) << "telemetry batch ends----\n";
+	});
+
 	so_set_delivery_filter(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::quantity<size_t>& q) {
 		return std::string_view(q.m_prefix.c_str()).find("/ao/calico_active_object") != std::string_view::npos;
 	});
