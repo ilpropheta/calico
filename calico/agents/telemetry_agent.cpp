@@ -29,7 +29,7 @@ void calico::agents::telemetry_agent::so_define_agent()
 	});
 
 	so_set_delivery_filter(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::quantity<size_t>& q) {
-		return std::string_view(q.m_prefix.c_str()).find("/ao/face_detector") != std::string_view::npos;
+		return std::string_view(q.m_prefix.c_str()).find("pipeline") != std::string_view::npos;
 	});
 
 	st_turned_on.event(so_environment().stats_controller().mbox(), [](const so_5::stats::messages::quantity<size_t>& q) {
