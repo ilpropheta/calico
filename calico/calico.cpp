@@ -29,16 +29,19 @@ int calico::run()
 		c.make_agent<agents::service_facade>();
 	});
 
-	sobjectizer.environment().introduce_coop([&](so_5::coop_t& c) {
-		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
+	sobjectizer.environment().introduce_coop(so_5::disp::active_group::make_dispatcher(sobjectizer.environment()).binder("monitoring"), [&](so_5::coop_t& c) {
 		c.make_agent<agents::image_tracer>(main_channel);
 		c.make_agent<agents::fps_estimator>(std::vector{ main_channel });
 		c.make_agent<agents::telemetry_agent>();
 		c.make_agent<agents::stream_heartbeat>(main_channel);
 		c.make_agent<agents::error_logger>(main_channel);
+	});
+
+	sobjectizer.environment().introduce_coop([&](so_5::coop_t& c) {
+		c.make_agent<agents::maint_gui::remote_control>(commands_channel, message_queue);
 		const auto faces = c.make_agent<agents::face_detector>(c.make_agent<agents::image_resizer>(main_channel, 0.5)->output())->output();
 		c.make_agent<agents::maint_gui::image_viewer>(faces, message_queue);
-		});
+	});
 
 	do_gui_message_loop(ctrl_c, message_queue, sobjectizer.environment().create_mbox(constants::waitkey_channel_name));
 	return 0;
